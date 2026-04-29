@@ -10,19 +10,32 @@
 
 LLM inference in C/C++
 
-## Local EngGPT2 Notes
+## Local EngGPT2 Support
 
-This fork includes local notes for EngGPT2-16B-A3B GGUF conversion and runtime support in [enggpt2-repro-notes.md](enggpt2-repro-notes.md).
+This fork carries a small set of local changes to run and regenerate
+EngGPT2-16B-A3B GGUF models.
 
-Files modified for EngGPT2 support:
+Related artifacts:
 
-- `convert_hf_to_gguf.py`: exports EngGPT2 Q/K norm tensors and maps EngGPT2 MoE expert names into the GGUF layout used by the converter.
-- `src/llama-model.cpp`: accepts optional `attn_q_norm` and `attn_k_norm` tensors during model loading.
-- `src/models/llama.cpp`: applies Q/K RMSNorm before RoPE for models that provide those tensors.
-- `README.md`: points to the local EngGPT2 notes in this fork.
-- `enggpt2-config-for-conversion.json`: local conversion config used to drive the HF to GGUF conversion path.
-- `enggpt2-llama-cpp-support.patch`: patch artifact for replaying the local changes on a clean checkout.
-- `enggpt2-repro-notes.md`: conversion, build, runtime and publishing notes.
+- GGUF model: `https://huggingface.co/robertobissanti/EngGPT2-16B-A3B-GGUF`
+- local notes: [enggpt2-repro-notes.md](enggpt2-repro-notes.md)
+- replayable patch: `enggpt2-llama-cpp-support.patch`
+
+Files modified in this fork:
+
+- Runtime loading:
+  `src/llama-model.cpp` accepts optional `attn_q_norm` and `attn_k_norm`
+  tensors during model loading.
+- Runtime graph:
+  `src/models/llama.cpp` applies Q/K RMSNorm before RoPE when those tensors are
+  present.
+- HF to GGUF conversion:
+  `convert_hf_to_gguf.py` exports EngGPT2 Q/K norm tensors and maps EngGPT2 MoE
+  expert names into the GGUF layout expected by the converter.
+- Conversion inputs and notes:
+  `enggpt2-config-for-conversion.json` is the local conversion config and
+  [enggpt2-repro-notes.md](enggpt2-repro-notes.md) documents conversion, build,
+  runtime and publishing details.
 
 ## Recent API changes
 
