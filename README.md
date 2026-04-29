@@ -10,6 +10,10 @@
 
 LLM inference in C/C++
 
+## Local EngGPT2 Notes
+
+This fork includes local notes for EngGPT2-16B-A3B GGUF conversion and runtime support in [enggpt2-repro-notes.md](enggpt2-repro-notes.md).
+
 ## Recent API changes
 
 - [Changelog for `libllama` API](https://github.com/ggml-org/llama.cpp/issues/9289)

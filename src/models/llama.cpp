@@ -46,11 +46,21 @@ llm_build_llama<embed>::llm_build_llama(const llama_model & model, const llm_gra
             auto [Qcur, Kcur, Vcur] = build_qkv(model.layers[il], cur,
                     n_embd_head, n_head, n_head_kv, il);
 
+            if (model.layers[il].attn_q_norm) {
+                Qcur = build_norm(Qcur, model.layers[il].attn_q_norm, NULL, LLM_NORM_RMS, il);
+                cb(Qcur, "attn_q_norm", il);
+            }
+
             Qcur = ggml_rope_ext(
                     ctx0, Qcur, inp_pos, rope_factors,
                     n_rot, rope_type, n_ctx_orig, freq_base, freq_scale,
                     ext_factor, attn_factor, beta_fast, beta_slow
                     );
+
+            if (model.layers[il].attn_k_norm) {
+                Kcur = build_norm(Kcur, model.layers[il].attn_k_norm, NULL, LLM_NORM_RMS, il);
+                cb(Kcur, "attn_k_norm", il);
+            }
 
             Kcur = ggml_rope_ext(
                     ctx0, Kcur, inp_pos, rope_factors,
@@ -60,6 +70,7 @@ llm_build_llama<embed>::llm_build_llama(const llama_model & model, const llm_gra
 
             cb(Qcur, "Qcur", il);
             cb(Kcur, "Kcur", il);
+
             cb(Vcur, "Vcur", il);
 
             if (hparams.use_kq_norm) {

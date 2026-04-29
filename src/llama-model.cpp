@@ -3167,6 +3167,18 @@ bool llama_model::load_tensors(llama_model_loader & ml) {
                         create_tensor_qkv(layer, i, n_embd, n_embd_head_k * n_head, n_embd_k_gqa, n_embd_v_gqa, 0);
                         layer.wo = create_tensor(tn(LLM_TENSOR_ATTN_OUT, "weight", i), {n_embd_head_k * n_head, n_embd}, 0);
 
+                        layer.attn_q_norm = create_tensor(
+                            tn(LLM_TENSOR_ATTN_Q_NORM, "weight", i),
+                            {n_embd_head_k},
+                            TENSOR_NOT_REQUIRED
+                        );
+
+                        layer.attn_k_norm = create_tensor(
+                            tn(LLM_TENSOR_ATTN_K_NORM, "weight", i),
+                            {n_embd_head_k},
+                            TENSOR_NOT_REQUIRED
+                        );
+
                         // optional bias tensors
                         layer.wo_b = create_tensor(tn(LLM_TENSOR_ATTN_OUT, "bias", i), {n_embd}, TENSOR_NOT_REQUIRED);
 

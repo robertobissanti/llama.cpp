@@ -2930,7 +2930,35 @@ class LlamaModel(TextModel):
             if name.endswith(("k_proj.weight", "k_proj.bias")):
                 data_torch = LlamaModel.permute(data_torch, n_head, n_kv_head)
 
+        # EngGPT-MoE has per-attention Q/K RMSNorm tensors.
+        # These are real model weights and must be exported.
+        if bid is not None and name.endswith(".self_attn.q_norm.weight"):
+            yield f"blk.{bid}.attn_q_norm.weight", data_torch
+            return
+
+        if bid is not None and name.endswith(".self_attn.k_norm.weight"):
+            yield f"blk.{bid}.attn_k_norm.weight", data_torch
+            return
+
         # process the experts separately
+        #
+        # EngGPT-MoE uses names like:
+        #   model.layers.N.mlp.experts.E.gate_proj.weight
+        #   model.layers.N.mlp.experts.E.up_proj.weight
+        #   model.layers.N.mlp.experts.E.down_proj.weight
+        #
+        # Mixtral conversion expects:
+        #   model.layers.N.block_sparse_moe.experts.E.w1.weight
+        #   model.layers.N.block_sparse_moe.experts.E.w3.weight
+        #   model.layers.N.block_sparse_moe.experts.E.w2.weight
+        #
+        # Normalize EngGPT expert tensor names before Mixtral expert packing.
+        if name.find("mlp.experts") != -1:
+            name = name.replace(".mlp.experts.", ".block_sparse_moe.experts.")
+            name = name.replace(".gate_proj.weight", ".w1.weight")
+            name = name.replace(".up_proj.weight", ".w3.weight")
+            name = name.replace(".down_proj.weight", ".w2.weight")
+
         if name.find("block_sparse_moe.experts") != -1:
             n_experts = self.hparams["num_local_experts"]
 
@@ -2955,12 +2983,14 @@ class LlamaModel(TextModel):
 
                     merged_name = f"layers.{bid}.feed_forward.experts.{wid}.weight"
 
-                    yield from super().modify_tensors(data_torch, merged_name, bid)
+                    new_name = self.map_tensor_name(merged_name)
+                    yield new_name, data_torch
                 return
             else:
                 return
 
-        yield from super().modify_tensors(data_torch, name, bid)
+        new_name = self.map_tensor_name(name)
+        yield new_name, data_torch
 
     def generate_extra_tensors(self) -> Iterable[tuple[str, Tensor]]:
         if rope_params := self.rope_parameters.get("full_attention", self.rope_parameters):
