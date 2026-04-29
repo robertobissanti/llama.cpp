@@ -17,10 +17,15 @@
 *.log
 *.metallib
 *.o
+*.orig
+*.rej
 *.so
 *.swp
 *.tmp
 *.DS_Store
+*.BAK
+*.bak.*
+*before-qk-norm*
 
 # IDE / OS
 

@@ -14,6 +14,16 @@ LLM inference in C/C++
 
 This fork includes local notes for EngGPT2-16B-A3B GGUF conversion and runtime support in [enggpt2-repro-notes.md](enggpt2-repro-notes.md).
 
+Files modified for EngGPT2 support:
+
+- `convert_hf_to_gguf.py`: exports EngGPT2 Q/K norm tensors and maps EngGPT2 MoE expert names into the GGUF layout used by the converter.
+- `src/llama-model.cpp`: accepts optional `attn_q_norm` and `attn_k_norm` tensors during model loading.
+- `src/models/llama.cpp`: applies Q/K RMSNorm before RoPE for models that provide those tensors.
+- `README.md`: points to the local EngGPT2 notes in this fork.
+- `enggpt2-config-for-conversion.json`: local conversion config used to drive the HF to GGUF conversion path.
+- `enggpt2-llama-cpp-support.patch`: patch artifact for replaying the local changes on a clean checkout.
+- `enggpt2-repro-notes.md`: conversion, build, runtime and publishing notes.
+
 ## Recent API changes
 
 - [Changelog for `libllama` API](https://github.com/ggml-org/llama.cpp/issues/9289)
